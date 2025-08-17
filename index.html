@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>To-Do List</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    h1 { margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; margin-bottom: 12px; }
+    input { flex: 1; padding: 10px; font-size: 16px; }
+    button { padding: 10px 14px; font-size: 16px; cursor: pointer; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .done { text-decoration: line-through; opacity: .7; }
+    .spacer { flex: 1; }
+    .small { font-size: 12px; color: #777; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <h1>✅ To-Do List</h1>
+  <div class="row">
+    <input id="taskInput" placeholder="Add a task and press Enter…" autofocus />
+    <button id="addBtn">Add</button>
+  </div>
+  <ul id="list"></ul>
+  <div class="small">Tip: Click a task to toggle done. 🗑️ deletes it.</div>
+
+  <script>
+    const KEY = "todo.tasks.v1";
+    const listEl = document.getElementById("list");
+    const inputEl = document.getElementById("taskInput");
+    const addBtn = document.getElementById("addBtn");
+
+    let tasks = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+    function save() { localStorage.setItem(KEY, JSON.stringify(tasks)); }
+    function render() {
+      listEl.innerHTML = "";
+      tasks.forEach((t, i) => {
+        const li = document.createElement("li");
+        const label = document.createElement("span");
+        label.textContent = t.text;
+        if (t.done) label.classList.add("done");
+        label.style.cursor = "pointer";
+        label.onclick = () => { tasks[i].done = !tasks[i].done; save(); render(); };
+
+        const spacer = document.createElement("div"); spacer.className = "spacer";
+        const del = document.createElement("button");
+        del.textContent = "🗑️";
+        del.title = "Delete";
+        del.onclick = () => { tasks.splice(i, 1); save(); render(); };
+
+        li.append(label, spacer, del);
+        listEl.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      tasks.push({ text, done: false });
+      inputEl.value = "";
+      save(); render();
+    }
+
+    addBtn.onclick = addTask;
+    inputEl.addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
+    render();
+  </script>
+</body>
+</html>
